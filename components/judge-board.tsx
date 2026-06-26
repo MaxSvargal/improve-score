@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 
@@ -17,7 +17,11 @@ export function JudgeBoard({ slug }: Props) {
   const [judgeName, setJudgeName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyTeamId, setBusyTeamId] = useState<string | null>(null);
+  const [clickLocked, setClickLocked] = useState(false);
+  const [activeTapTeamId, setActiveTapTeamId] = useState<string | null>(null);
   const [lastAction, setLastAction] = useState<string | null>(null);
+  const tapLockRef = useRef(false);
+  const tapLockTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -57,34 +61,63 @@ export function JudgeBoard({ slug }: Props) {
     };
   }, [slug, token]);
 
+  useEffect(() => {
+    return () => {
+      if (tapLockTimerRef.current !== null) {
+        window.clearTimeout(tapLockTimerRef.current);
+      }
+    };
+  }, []);
+
   const currentRoundLabel = useMemo(() => {
     if (!snapshot?.currentRound) return "No open round";
     return `Round ${snapshot.currentRound.number}`;
   }, [snapshot?.currentRound]);
 
   async function tap(teamId: string) {
-    if (!token) return;
+    if (!token || tapLockRef.current || busyTeamId !== null) return;
+
+    const teamName = snapshot?.event.teams.find((team) => team.id === teamId)?.name ?? "team";
+
+    tapLockRef.current = true;
+    setClickLocked(true);
+    setActiveTapTeamId(teamId);
+    if (tapLockTimerRef.current !== null) {
+      window.clearTimeout(tapLockTimerRef.current);
+    }
+    tapLockTimerRef.current = window.setTimeout(() => {
+      tapLockRef.current = false;
+      tapLockTimerRef.current = null;
+      setClickLocked(false);
+      setActiveTapTeamId(null);
+    }, 300);
+
     setBusyTeamId(teamId);
     setLastAction(null);
 
-    const response = await fetch(`/api/events/${slug}/tap`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ token, teamId }),
-    });
+    try {
+      const response = await fetch(`/api/events/${slug}/tap`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token, teamId }),
+      });
 
-    setBusyTeamId(null);
-    const data = (await response.json().catch(() => null)) as { error?: string; snapshot?: EventSnapshot } | null;
-    if (!response.ok) {
-      setError(data?.error ?? "Score update failed");
-      return;
+      const data = (await response.json().catch(() => null)) as { error?: string; snapshot?: EventSnapshot } | null;
+      if (!response.ok) {
+        setError(data?.error ?? "Score update failed");
+        return;
+      }
+
+      if (data?.snapshot) setSnapshot(data.snapshot);
+      setLastAction(`+1 for ${teamName}`);
+      setError(null);
+    } catch {
+      setError("Score update failed");
+    } finally {
+      setBusyTeamId(null);
     }
-
-    if (data?.snapshot) setSnapshot(data.snapshot);
-    setLastAction(`+1 for ${snapshot?.event.teams.find((team) => team.id === teamId)?.name ?? "team"}`);
-    setError(null);
   }
 
   async function undo() {
@@ -122,9 +155,12 @@ export function JudgeBoard({ slug }: Props) {
     );
   }
 
+  const scoringDisabled = !snapshot?.currentRound || snapshot.event.status === "closed";
+  const tapDisabled = scoringDisabled || busyTeamId !== null;
+
   return (
-    <div className="min-h-screen px-4 py-4 sm:px-6 lg:px-8">
-      <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-7xl flex-col gap-4">
+    <div className="min-h-screen p-12 sm:p-12 lg:p-12">
+      <div className="mx-auto flex min-h-[calc(100vh-6rem)] max-w-7xl flex-col gap-8">
         {error ? (
           <div className="rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
             {error}
@@ -137,13 +173,29 @@ export function JudgeBoard({ slug }: Props) {
               key={team.id}
               type="button"
               onClick={() => tap(team.id)}
-              disabled={!snapshot?.currentRound || snapshot.event.status === "closed" || busyTeamId !== null}
-              className="relative flex min-h-[230px] flex-col overflow-hidden rounded-[28px] border border-white/10 text-left transition duration-150 hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={tapDisabled}
+              aria-disabled={tapDisabled || clickLocked}
+              className={`judge-score-button relative flex min-h-[230px] flex-col overflow-hidden rounded-[28px] border border-white/10 text-left shadow-2xl shadow-black/20 transition duration-150 hover:-translate-y-0.5 active:scale-[0.985] disabled:cursor-not-allowed ${
+                activeTapTeamId === team.id ? "judge-tap-button" : ""
+              } ${
+                scoringDisabled ? "opacity-60" : ""
+              } ${
+                clickLocked ? "pointer-events-none" : ""
+              }`}
               style={{ background: team.color }}
             >
               <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.12),rgba(0,0,0,0.12))]" />
+              <div
+                className={`pointer-events-none absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/35 ${
+                  activeTapTeamId === team.id ? "judge-tap-ripple" : "opacity-0"
+                }`}
+              />
               <div className="relative flex flex-1 flex-col items-center justify-center gap-4 p-6 text-center text-white">
-                <div className="flex h-28 w-28 items-center justify-center overflow-hidden rounded-[28px] border border-white/15 bg-black/20 text-6xl shadow-lg">
+                <div
+                  className={`flex h-28 w-28 items-center justify-center overflow-hidden rounded-[28px] border border-white/15 bg-black/20 text-6xl shadow-lg ${
+                    activeTapTeamId === team.id ? "judge-tap-icon" : ""
+                  }`}
+                >
                   {team.imageDataUrl ? (
                     <Image
                       src={team.imageDataUrl}

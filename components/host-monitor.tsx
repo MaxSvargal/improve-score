@@ -13,7 +13,6 @@ type Props = {
 export function HostMonitor({ slug, initialSnapshot }: Props) {
   const [snapshot, setSnapshot] = useState(initialSnapshot);
   const [busy, setBusy] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -39,7 +38,6 @@ export function HostMonitor({ slug, initialSnapshot }: Props) {
 
   async function post(action: string) {
     setBusy(action);
-    setMessage(null);
 
     const response = await fetch(`/api/events/${slug}`, {
       method: "PATCH",
@@ -52,8 +50,6 @@ export function HostMonitor({ slug, initialSnapshot }: Props) {
     setBusy(null);
 
     if (!response.ok) {
-      const data = (await response.json().catch(() => null)) as { error?: string } | null;
-      setMessage(data?.error ?? "Update failed");
       return;
     }
 
@@ -61,14 +57,28 @@ export function HostMonitor({ slug, initialSnapshot }: Props) {
     if (data.snapshot) {
       setSnapshot(data.snapshot);
     }
-    setMessage("Updated");
   }
 
-  const activeJudges = snapshot.event.judges.filter((judge) => judge.isActive).length;
   const totalTapCount = snapshot.scoreEvents.filter((score) => score.delta > 0).length;
+  const roundsDescending = [...snapshot.event.rounds].sort((a, b) => b.number - a.number);
 
   return (
     <div className="grid gap-5">
+      <button
+        type="button"
+        onClick={() => post("next-round")}
+        disabled={busy !== null || snapshot.event.status === "closed"}
+        aria-label="Advance to next round"
+        className="fixed bottom-6 right-6 z-30 inline-flex h-14 items-center gap-2 rounded-full bg-cyan-400 px-5 text-sm font-semibold text-slate-950 shadow-[0_16px_40px_rgba(34,211,238,0.35)] transition hover:-translate-y-0.5 hover:bg-cyan-300 hover:shadow-[0_20px_48px_rgba(34,211,238,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-200 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 disabled:pointer-events-none disabled:translate-y-0 disabled:opacity-50 sm:bottom-8 sm:right-8"
+      >
+        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-950/10">
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
+          </svg>
+        </span>
+        <span className="whitespace-nowrap">Next round</span>
+      </button>
+
       <section className="grid gap-4 rounded-[24px] border border-white/10 bg-white/6 p-3 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
@@ -78,13 +88,6 @@ export function HostMonitor({ slug, initialSnapshot }: Props) {
             >
               Configure
             </Link>
-            <button
-              onClick={() => post("next-round")}
-              disabled={busy !== null || snapshot.event.status === "closed"}
-              className="inline-flex flex-1 items-center justify-center rounded-xl bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-60 sm:flex-none"
-            >
-              Next round
-            </button>
             <button
               onClick={() => post(snapshot.event.status === "closed" ? "reopen-event" : "close-event")}
               disabled={busy !== null}
@@ -98,101 +101,27 @@ export function HostMonitor({ slug, initialSnapshot }: Props) {
       
       <section className="grid gap-5 rounded-[24px] border border-white/10 bg-white/6 p-4 sm:p-5">
         <div className="grid gap-4">
-          <div className="md:hidden">
-            <div className="grid gap-3">
-              {snapshot.event.judges.map((judge) => {
-                const totals = snapshot.judgeMatrix[judge.id] ?? {};
-                const total = Object.values(totals).reduce((sum, value) => sum + value, 0);
-                return (
-                  <article key={judge.id} className="rounded-2xl border border-white/10 bg-slate-950/55 p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="text-sm font-semibold text-white">{judge.name}</div>
-                      <div className="text-sm text-cyan-200">{total}</div>
-                    </div>
-                    <div className="mt-3 grid gap-2">
-                      {snapshot.event.teams.map((team) => (
-                        <div key={team.id} className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2 text-sm">
-                          <span className="text-slate-200">{team.name}</span>
-                          <span className="font-semibold text-white">{totals[team.id] ?? 0}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </article>
-                );
-              })}
+          <div className="grid gap-4">
+            <ScoreTableCard
+              title="Total"
+              subtitle={`${totalTapCount} votes`}
+              teams={snapshot.event.teams}
+              judges={snapshot.event.judges}
+              judgeTeamTotals={snapshot.judgeTotals}
+              showSumRow
+              highlight
+            />
 
-              <article className="rounded-2xl border border-white/10 bg-cyan-500/10 p-4">
-                <div className="text-sm font-semibold text-white">Team totals</div>
-                <div className="mt-3 grid gap-2">
-                  {snapshot.event.teams.map((team) => (
-                    <div key={team.id} className="flex items-center justify-between rounded-xl bg-white/5 px-3 py-2 text-sm">
-                      <span className="text-slate-200">{team.name}</span>
-                      <span className="font-semibold text-white">{snapshot.teamTotals[team.id] ?? 0}</span>
-                    </div>
-                  ))}
-                </div>
-              </article>
-            </div>
-          </div>
-
-          <div className="hidden overflow-x-auto rounded-2xl border border-white/10 md:block">
-            <table className="min-w-full border-collapse text-left text-sm">
-              <thead className="bg-white/5 text-slate-300">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Source</th>
-                  {snapshot.event.teams.map((team) => (
-                    <th key={team.id} className="px-4 py-3 font-medium">
-                      {team.name}
-                    </th>
-                  ))}
-                  <th className="px-4 py-3 font-medium">Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                {snapshot.event.judges.map((judge) => {
-                  const totals = snapshot.judgeMatrix[judge.id] ?? {};
-                  const total = Object.values(totals).reduce((sum, value) => sum + value, 0);
-                  return (
-                    <tr key={judge.id} className="border-t border-white/10">
-                      <td className="px-4 py-3 text-slate-100">{judge.name}</td>
-                      {snapshot.event.teams.map((team) => (
-                        <td key={team.id} className="px-4 py-3 text-slate-200">
-                          {totals[team.id] ?? 0}
-                        </td>
-                      ))}
-                      <td className="px-4 py-3 font-semibold text-white">{total}</td>
-                    </tr>
-                  );
-                })}
-                {snapshot.event.rounds.map((round) => {
-                  const totals = snapshot.roundTotals[round.id] ?? {};
-                  const total = Object.values(totals).reduce((sum, value) => sum + value, 0);
-                  return (
-                    <tr key={round.id} className="border-t border-white/10 bg-white/[0.03]">
-                      <td className="px-4 py-3 text-slate-100">
-                        Round {round.number}
-                        <span className="ml-2 text-xs text-slate-400">{round.status}</span>
-                      </td>
-                      {snapshot.event.teams.map((team) => (
-                        <td key={team.id} className="px-4 py-3 text-slate-200">
-                          {totals[team.id] ?? 0}
-                        </td>
-                      ))}
-                      <td className="px-4 py-3 text-slate-300">{total}</td>
-                    </tr>
-                  );
-                })}
-                <tr className="border-t border-white/10 bg-cyan-500/10">
-                  <td className="px-4 py-3 font-semibold text-white">Team totals</td>
-                  {snapshot.event.teams.map((team) => (
-                    <td key={team.id} className="px-4 py-3 font-semibold text-white">
-                      {snapshot.teamTotals[team.id] ?? 0}
-                    </td>
-                  ))}
-                  <td className="px-4 py-3 text-slate-300">{totalTapCount}</td>
-                </tr>
-              </tbody>
-            </table>
+            {roundsDescending.map((round) => (
+              <ScoreTableCard
+                key={round.id}
+                title={`Round ${round.number}`}
+                subtitle={round.status}
+                teams={snapshot.event.teams}
+                judges={snapshot.event.judges}
+                judgeTeamTotals={snapshot.roundJudgeTotals[round.id] ?? {}}
+              />
+            ))}
           </div>
 
           <div className="grid gap-3 border-t border-white/10 pt-4">
@@ -219,12 +148,75 @@ export function HostMonitor({ slug, initialSnapshot }: Props) {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function ScoreTableCard({
+  title,
+  subtitle,
+  teams,
+  judges,
+  judgeTeamTotals,
+  showSumRow = false,
+  highlight = false,
+}: {
+  title: string;
+  subtitle: string;
+  teams: EventSnapshot["event"]["teams"];
+  judges: EventSnapshot["event"]["judges"];
+  judgeTeamTotals: Record<string, Record<string, number>>;
+  showSumRow?: boolean;
+  highlight?: boolean;
+}) {
+  const judgeSums = judges.map((judge) =>
+    teams.reduce((sum, team) => sum + (judgeTeamTotals[judge.id]?.[team.id] ?? 0), 0),
+  );
+
   return (
-    <div className="rounded-2xl border border-white/10 bg-slate-950/55 p-4">
-      <p className="text-sm text-slate-300">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-white">{value}</p>
-    </div>
+    <article
+      className={`rounded-2xl border p-4 sm:p-5 ${
+        highlight ? "border-cyan-400/20 bg-cyan-500/10" : "border-white/10 bg-slate-950/35"
+      }`}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0 text-base font-semibold text-white">{title}</div>
+        <div className="shrink-0 text-[11px] uppercase tracking-[0.18em] text-slate-400">{subtitle}</div>
+      </div>
+
+      <div className="mt-4 overflow-hidden rounded-2xl border border-white/10">
+        <table className="w-full table-fixed border-collapse text-xs sm:text-sm">
+          <thead className="bg-white/5 text-slate-300">
+            <tr>
+              <th className="w-[32%] px-3 py-3 text-left font-medium sm:w-[28%] sm:px-4">Team</th>
+              {judges.map((judge) => (
+                <th key={judge.id} className="px-2 py-3 text-center font-medium sm:px-3">
+                  <span className="block whitespace-normal break-words">{judge.name}</span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {teams.map((team) => (
+              <tr key={team.id} className="border-t border-white/10">
+                <td className="px-3 py-3 text-left font-medium text-slate-100 sm:px-4">{team.name}</td>
+                {judges.map((judge) => (
+                  <td key={judge.id} className="px-2 py-3 text-center text-slate-200 sm:px-3">
+                    {judgeTeamTotals[judge.id]?.[team.id] ?? 0}
+                  </td>
+                ))}
+              </tr>
+            ))}
+            {showSumRow ? (
+              <tr className="border-t border-white/10 bg-white/5">
+                <td className="px-3 py-3 text-left font-semibold text-white sm:px-4">Sum</td>
+                {judgeSums.map((sum, index) => (
+                  <td key={judges[index]?.id ?? index} className="px-2 py-3 text-center font-semibold text-white sm:px-3">
+                    {sum}
+                  </td>
+                ))}
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      </div>
+    </article>
   );
 }
 

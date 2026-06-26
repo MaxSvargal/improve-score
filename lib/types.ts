@@ -55,12 +55,15 @@ export type TeamRoundTotals = Record<string, number>;
 
 export type JudgeRoundTotals = Record<string, Record<string, number>>;
 
+export type RoundJudgeTotals = Record<string, Record<string, TeamRoundTotals>>;
+
 export type EventSnapshot = {
   event: EventRecord;
   currentRound: Round | null;
   scoreEvents: ScoreEvent[];
   teamTotals: Record<string, number>;
   roundTotals: Record<string, TeamRoundTotals>;
+  roundJudgeTotals: RoundJudgeTotals;
   judgeTotals: Record<string, TeamRoundTotals>;
   judgeMatrix: Record<string, TeamRoundTotals>;
   leaderboard: Array<{
