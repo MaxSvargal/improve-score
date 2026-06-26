@@ -29,7 +29,7 @@ export function HostMonitor({ slug, initialSnapshot }: Props) {
     }
 
     void refresh();
-    const timer = window.setInterval(refresh, 1500);
+    const timer = window.setInterval(refresh, 3000);
     return () => {
       alive = false;
       window.clearInterval(timer);

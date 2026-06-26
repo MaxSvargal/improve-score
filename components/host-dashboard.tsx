@@ -37,7 +37,7 @@ export function HostDashboard({ slug, initialSnapshot }: Props) {
     }
 
     void refresh();
-    const timer = window.setInterval(refresh, 2000);
+    const timer = window.setInterval(refresh, 3000);
     return () => {
       alive = false;
       window.clearInterval(timer);
