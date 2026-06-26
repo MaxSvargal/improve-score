@@ -1,0 +1,219 @@
+{
+  "eventSlugs": [
+    "comedy-season-2"
+  ],
+  "events": {
+    "comedy-season-2": {
+      "id": "event_2795a26c2de7",
+      "slug": "comedy-season-2",
+      "title": "Comedy Season 1",
+      "description": "",
+      "status": "active",
+      "createdAt": "2026-06-26T13:23:57.535Z",
+      "updatedAt": "2026-06-26T15:50:08.697Z",
+      "teams": [
+        {
+          "id": "team_ceca164ee0a4",
+          "name": "Синие",
+          "color": "#165dff",
+          "emoji": "🔥",
+          "order": 0
+        },
+        {
+          "id": "team_85076ca37583",
+          "name": "Красные",
+          "color": "#04c32a",
+          "emoji": "⚡",
+          "order": 1
+        }
+      ],
+      "judges": [
+        {
+          "id": "judge_0bbf16a2a055",
+          "name": "Аня",
+          "token": "71f14ff6e26c46ff87c980e541322ac4",
+          "isActive": true,
+          "order": 0
+        },
+        {
+          "id": "judge_e66e0dfc7c96",
+          "name": "Костя",
+          "token": "1f05d460e6324fa9afb30056a7ca0a2b",
+          "isActive": true,
+          "order": 1
+        }
+      ],
+      "rounds": [
+        {
+          "id": "round_bcff02880913",
+          "number": 1,
+          "status": "closed",
+          "startedAt": "2026-06-26T13:23:57.535Z",
+          "finishedAt": "2026-06-26T13:28:37.566Z"
+        },
+        {
+          "id": "round_53e57c5321e9",
+          "number": 2,
+          "status": "closed",
+          "startedAt": "2026-06-26T13:28:46.614Z",
+          "finishedAt": "2026-06-26T15:50:08.697Z"
+        },
+        {
+          "id": "round_c8695bc554c7",
+          "number": 3,
+          "status": "open",
+          "startedAt": "2026-06-26T15:50:08.697Z"
+        }
+      ],
+      "currentRoundId": "round_c8695bc554c7"
+    }
+  },
+  "scores": {
+    "comedy-season-2": [
+      {
+        "id": "score_b8ffe73c946c",
+        "eventSlug": "comedy-season-2",
+        "createdAt": "2026-06-26T13:25:23.831Z",
+        "judgeId": "judge_0bbf16a2a055",
+        "roundId": "round_bcff02880913",
+        "teamId": "team_85076ca37583",
+        "delta": 1
+      },
+      {
+        "id": "score_a2821c32a174",
+        "eventSlug": "comedy-season-2",
+        "createdAt": "2026-06-26T13:25:24.733Z",
+        "judgeId": "judge_0bbf16a2a055",
+        "roundId": "round_bcff02880913",
+        "teamId": "team_85076ca37583",
+        "delta": 1
+      },
+      {
+        "id": "score_dfe29779a6d7",
+        "eventSlug": "comedy-season-2",
+        "createdAt": "2026-06-26T13:25:27.503Z",
+        "judgeId": "judge_0bbf16a2a055",
+        "roundId": "round_bcff02880913",
+        "teamId": "team_ceca164ee0a4",
+        "delta": 1
+      },
+      {
+        "id": "score_d69a5d68d86b",
+        "eventSlug": "comedy-season-2",
+        "createdAt": "2026-06-26T13:25:29.830Z",
+        "judgeId": "judge_0bbf16a2a055",
+        "roundId": "round_bcff02880913",
+        "teamId": "team_ceca164ee0a4",
+        "delta": 1
+      },
+      {
+        "id": "score_a51374abbde4",
+        "eventSlug": "comedy-season-2",
+        "createdAt": "2026-06-26T13:25:31.188Z",
+        "judgeId": "judge_0bbf16a2a055",
+        "roundId": "round_bcff02880913",
+        "teamId": "team_ceca164ee0a4",
+        "delta": 1
+      },
+      {
+        "id": "score_c49472b02f75",
+        "eventSlug": "comedy-season-2",
+        "createdAt": "2026-06-26T13:25:32.764Z",
+        "judgeId": "judge_0bbf16a2a055",
+        "roundId": "round_bcff02880913",
+        "teamId": "team_ceca164ee0a4",
+        "delta": 1
+      },
+      {
+        "id": "score_c854bd7d90c0",
+        "eventSlug": "comedy-season-2",
+        "createdAt": "2026-06-26T13:25:34.765Z",
+        "judgeId": "judge_0bbf16a2a055",
+        "roundId": "round_bcff02880913",
+        "teamId": "team_85076ca37583",
+        "delta": 1
+      },
+      {
+        "id": "score_aca9cbb8171c",
+        "eventSlug": "comedy-season-2",
+        "createdAt": "2026-06-26T13:27:51.910Z",
+        "judgeId": "judge_0bbf16a2a055",
+        "roundId": "round_bcff02880913",
+        "teamId": "team_ceca164ee0a4",
+        "delta": 1
+      },
+      {
+        "id": "score_931081fd583b",
+        "eventSlug": "comedy-season-2",
+        "createdAt": "2026-06-26T13:27:53.671Z",
+        "judgeId": "judge_0bbf16a2a055",
+        "roundId": "round_bcff02880913",
+        "teamId": "team_85076ca37583",
+        "delta": 1
+      },
+      {
+        "id": "score_ceb48aba643e",
+        "eventSlug": "comedy-season-2",
+        "createdAt": "2026-06-26T13:28:02.547Z",
+        "judgeId": "judge_0bbf16a2a055",
+        "roundId": "round_bcff02880913",
+        "teamId": "team_ceca164ee0a4",
+        "delta": 1
+      },
+      {
+        "id": "score_b66e9ef6cf07",
+        "eventSlug": "comedy-season-2",
+        "createdAt": "2026-06-26T13:28:02.765Z",
+        "judgeId": "judge_0bbf16a2a055",
+        "roundId": "round_bcff02880913",
+        "teamId": "team_ceca164ee0a4",
+        "delta": 1
+      },
+      {
+        "id": "score_3d4f4a7961a1",
+        "eventSlug": "comedy-season-2",
+        "createdAt": "2026-06-26T13:28:02.980Z",
+        "judgeId": "judge_0bbf16a2a055",
+        "roundId": "round_bcff02880913",
+        "teamId": "team_ceca164ee0a4",
+        "delta": 1
+      },
+      {
+        "id": "score_9559fbc1c5dc",
+        "eventSlug": "comedy-season-2",
+        "createdAt": "2026-06-26T13:28:03.183Z",
+        "judgeId": "judge_0bbf16a2a055",
+        "roundId": "round_bcff02880913",
+        "teamId": "team_ceca164ee0a4",
+        "delta": 1
+      },
+      {
+        "id": "score_f0745b9314e7",
+        "eventSlug": "comedy-season-2",
+        "createdAt": "2026-06-26T13:28:03.383Z",
+        "judgeId": "judge_0bbf16a2a055",
+        "roundId": "round_bcff02880913",
+        "teamId": "team_ceca164ee0a4",
+        "delta": 1
+      },
+      {
+        "id": "score_f24c28856355",
+        "eventSlug": "comedy-season-2",
+        "createdAt": "2026-06-26T15:46:47.822Z",
+        "judgeId": "judge_e66e0dfc7c96",
+        "roundId": "round_53e57c5321e9",
+        "teamId": "team_85076ca37583",
+        "delta": 1
+      },
+      {
+        "id": "score_1c0647dc5839",
+        "eventSlug": "comedy-season-2",
+        "createdAt": "2026-06-26T15:47:20.993Z",
+        "judgeId": "judge_e66e0dfc7c96",
+        "roundId": "round_53e57c5321e9",
+        "teamId": "team_85076ca37583",
+        "delta": 1
+      }
+    ]
+  }
+}
