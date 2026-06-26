@@ -69,7 +69,7 @@ export function HostMonitor({ slug, initialSnapshot }: Props) {
 
   return (
     <div className="grid gap-5">
-      <section className="grid gap-4 rounded-[24px] border border-white/10 bg-white/6 p-4 sm:p-5">
+      <section className="grid gap-4 rounded-[24px] border border-white/10 bg-white/6 p-3 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
             <Link
@@ -88,7 +88,7 @@ export function HostMonitor({ slug, initialSnapshot }: Props) {
             <button
               onClick={() => post(snapshot.event.status === "closed" ? "reopen-event" : "close-event")}
               disabled={busy !== null}
-              className="inline-flex flex-1 items-center justify-center rounded-xl bg-amber-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60 sm:flex-none"
+              className="inline-flex flex-1 items-center justify-center rounded-xl bg-gray-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60 sm:flex-none"
             >
               {snapshot.event.status === "closed" ? "Reopen event" : "Close event"}
             </button>
@@ -97,11 +97,6 @@ export function HostMonitor({ slug, initialSnapshot }: Props) {
       </section>
       
       <section className="grid gap-5 rounded-[24px] border border-white/10 bg-white/6 p-4 sm:p-5">
-        <div>
-          <h2 className="text-lg font-semibold text-white">Live results</h2>
-          <p className="mt-1 text-sm text-slate-300">Judges, team totals, and per-round analytics share one board.</p>
-        </div>
-
         <div className="grid gap-4">
           <div className="md:hidden">
             <div className="grid gap-3">
@@ -203,8 +198,7 @@ export function HostMonitor({ slug, initialSnapshot }: Props) {
           <div className="grid gap-3 border-t border-white/10 pt-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <div className="text-sm font-semibold text-white">Tap history</div>
-                <div className="mt-1 text-xs text-slate-400">Compact full history, newest first.</div>
+                <div className="text-sm font-semibold text-white">History</div>
               </div>
               <div className="text-xs text-slate-400">{snapshot.recentScores.length} records shown</div>
             </div>
