@@ -45,6 +45,16 @@ function getStoreBackend() {
   return "file" as const;
 }
 
+function parseStoredJson<T>(value: unknown): T | null {
+  if (value == null) {
+    return null;
+  }
+  if (typeof value === "string") {
+    return JSON.parse(value) as T;
+  }
+  return value as T;
+}
+
 function defaultState(): PersistedState {
   return {
     eventSlugs: [],
@@ -84,12 +94,14 @@ async function readState(): Promise<PersistedState> {
   const scores: Record<string, ScoreEvent[]> = {};
 
   for (const slug of index) {
-    const meta = (await client.get(`${EVENT_KEY_PREFIX}${slug}`)) as string | null;
+    const meta = await client.get(`${EVENT_KEY_PREFIX}${slug}`);
     if (meta) {
-      events[slug] = JSON.parse(meta) as EventRecord;
+      events[slug] = parseStoredJson<EventRecord>(meta) as EventRecord;
     }
-    const eventScores = ((await client.lrange(`${SCORE_KEY_PREFIX}${slug}`, 0, -1)) as string[] | null) ?? [];
-    scores[slug] = eventScores.map((item) => JSON.parse(item) as ScoreEvent);
+    const eventScores = (await client.lrange(`${SCORE_KEY_PREFIX}${slug}`, 0, -1)) as unknown[] | null;
+    scores[slug] = (eventScores ?? [])
+      .map((item) => parseStoredJson<ScoreEvent>(item))
+      .filter((item): item is ScoreEvent => item !== null);
   }
 
   return {
