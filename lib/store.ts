@@ -12,6 +12,7 @@ const FILE_PATH = path.join(process.cwd(), ".data", "score-store.json");
 const EVENT_INDEX_KEY = "improve-score:event-index";
 const EVENT_KEY_PREFIX = "improve-score:event:";
 const SCORE_KEY_PREFIX = "improve-score:scores:";
+const isVercelDeployment = process.env.VERCEL === "1" && process.env.VERCEL_ENV !== "development";
 
 const redis =
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
@@ -22,6 +23,27 @@ const redis =
     : null;
 
 let writeQueue = Promise.resolve();
+
+export class StoreConfigurationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "StoreConfigurationError";
+  }
+}
+
+function getStoreBackend() {
+  if (redis) {
+    return "redis" as const;
+  }
+
+  if (isVercelDeployment) {
+    throw new StoreConfigurationError(
+      "Production storage is not configured. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Vercel, then redeploy.",
+    );
+  }
+
+  return "file" as const;
+}
 
 function defaultState(): PersistedState {
   return {
@@ -51,20 +73,22 @@ async function writeFileState(state: PersistedState) {
 }
 
 async function readState(): Promise<PersistedState> {
-  if (!redis) {
+  const backend = getStoreBackend();
+  if (backend === "file") {
     return readFileState();
   }
 
-  const index = ((await redis.smembers(EVENT_INDEX_KEY)) as string[] | null) ?? [];
+  const client = redis!;
+  const index = ((await client.smembers(EVENT_INDEX_KEY)) as string[] | null) ?? [];
   const events: Record<string, EventRecord> = {};
   const scores: Record<string, ScoreEvent[]> = {};
 
   for (const slug of index) {
-    const meta = (await redis.get(`${EVENT_KEY_PREFIX}${slug}`)) as string | null;
+    const meta = (await client.get(`${EVENT_KEY_PREFIX}${slug}`)) as string | null;
     if (meta) {
       events[slug] = JSON.parse(meta) as EventRecord;
     }
-    const eventScores = ((await redis.lrange(`${SCORE_KEY_PREFIX}${slug}`, 0, -1)) as string[] | null) ?? [];
+    const eventScores = ((await client.lrange(`${SCORE_KEY_PREFIX}${slug}`, 0, -1)) as string[] | null) ?? [];
     scores[slug] = eventScores.map((item) => JSON.parse(item) as ScoreEvent);
   }
 
@@ -76,36 +100,38 @@ async function readState(): Promise<PersistedState> {
 }
 
 async function writeState(state: PersistedState) {
-  if (!redis) {
+  const backend = getStoreBackend();
+  if (backend === "file") {
     await writeFileState(state);
     return;
   }
 
-  await redis.del(EVENT_INDEX_KEY);
+  const client = redis!;
+  await client.del(EVENT_INDEX_KEY);
   if (state.eventSlugs.length > 0) {
     for (const slug of state.eventSlugs) {
-      await redis.sadd(EVENT_INDEX_KEY, slug);
+      await client.sadd(EVENT_INDEX_KEY, slug);
     }
   }
 
   for (const [slug, event] of Object.entries(state.events)) {
-    await redis.set(`${EVENT_KEY_PREFIX}${slug}`, JSON.stringify(event));
+    await client.set(`${EVENT_KEY_PREFIX}${slug}`, JSON.stringify(event));
   }
 
   const existingSlugs = new Set(Object.keys(state.scores));
   for (const slug of state.eventSlugs) {
-    await redis.del(`${SCORE_KEY_PREFIX}${slug}`);
+    await client.del(`${SCORE_KEY_PREFIX}${slug}`);
     const eventScores = state.scores[slug] ?? [];
     if (eventScores.length > 0) {
       for (const score of eventScores.map((item) => JSON.stringify(item))) {
-        await redis.rpush(`${SCORE_KEY_PREFIX}${slug}`, score);
+        await client.rpush(`${SCORE_KEY_PREFIX}${slug}`, score);
       }
     }
     existingSlugs.delete(slug);
   }
 
   for (const slug of existingSlugs) {
-    await redis.del(`${SCORE_KEY_PREFIX}${slug}`);
+    await client.del(`${SCORE_KEY_PREFIX}${slug}`);
   }
 }
 
