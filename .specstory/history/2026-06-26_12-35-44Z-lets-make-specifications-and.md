@@ -1140,3 +1140,15 @@ export type FormState =
 _**Agent (gpt-5.5 2026-06-26 12:36:23Z)**_
 
 The main framework constraint is clear: pages under `app/`, dynamic event routes like `/tournament/[slug]`, and mutations through Server Functions or Route Handlers. Now I need to lock the few product choices that change the schema and security model.
+
+_**Agent (gpt-5.5 2026-06-26 12:36:30Z)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="request_user_input"><details>
+<summary>Tool use: **request_user_input**</summary>
+
+**Input:**
+
+- autoResolutionMs: `60000`
+- questions: `[map[header:Backend id:backend options:[map[description:Postgres, file storage, auth, and realtime subscriptions fit the event/judge/host model with low custom infrastructure. label:Supabase (Recommended)] map[description:Use Vercel Postgres/Blob/KV where possible, but realtime will likely need polling or an added realtime service. label:Vercel stack] map[description:Build a frontend-only/mock version first; fast to demo but not suitable for real judges or Vercel production. label:Local prototype]] question:Which realtime backend should the implementation plan target for Vercel?] map[header:Host Auth id:host_auth options:[map[description:Only authenticated hosts can create, edit, close, and view their event dashboards. label:Email login (Recommended)] map[description:Each event has a private host/admin token URL; simpler, but link leakage gives full event control. label:Admin secret link] map[description:Fastest prototype, but anyone who finds admin routes could alter events. label:No auth for v1]] question:How should hosts be protected when creating and managing many events?] map[header:Judge Links id:judge_links options:[map[description:Host creates judge names; each judge gets a unique tokenized URL and scores are attributed clearly. label:Named judge links (Recommended)] map[description:All judges use the same public event URL and type/select their name; simpler but weaker attribution. label:Shared event link] map[description:Judges authenticate individually; more secure but heavier for a tap-first scoring flow. label:Judge login]] question:What kind of judge links should the host distribute?]]`
+
+</details></tool-use>
