@@ -9,6 +9,7 @@ import {
   getEvent,
   getEventSnapshot,
   reopenEvent,
+  resetScores,
   setEventTeams,
   startNextRound,
   toggleJudge,
@@ -119,6 +120,8 @@ export async function PATCH(request: Request, context: RouteContext<"/api/events
       await closeEvent(slug);
     } else if (action === "reopen-event") {
       await reopenEvent(slug);
+    } else if (action === "reset-scores") {
+      await resetScores(slug);
     } else {
       return NextResponse.json({ error: "Unsupported action" }, { status: 400 });
     }

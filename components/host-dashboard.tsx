@@ -88,6 +88,13 @@ export function HostDashboard({ slug, initialSnapshot }: Props) {
     setJudgeName("");
   }
 
+  async function resetAllScores() {
+    if (!window.confirm("Reset all scores and rounds for this event? This will start a fresh round 1 and cannot be undone.")) {
+      return;
+    }
+    await post("reset-scores");
+  }
+
   return (
     <div className="grid gap-5">
       <section className="grid gap-4 rounded-[24px] border border-white/10 bg-white/6 p-4 sm:p-5">
@@ -253,6 +260,25 @@ export function HostDashboard({ slug, initialSnapshot }: Props) {
               No judge links yet. Add the first judge above to generate a private URL.
             </div>
           ) : null}
+        </div>
+      </section>
+
+      <section className="grid gap-4 rounded-[24px] border border-rose-500/30 bg-rose-500/10 p-4 sm:p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-rose-100">Danger zone</h2>
+            <p className="mt-1 text-sm text-rose-100/80">
+              Clear every score entry and rebuild the event to a fresh round 1 while keeping the event, judges, and team setup intact.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={resetAllScores}
+            disabled={busy !== null}
+            className="rounded-xl bg-rose-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-400 disabled:opacity-60"
+          >
+            Reset scores and rounds
+          </button>
         </div>
       </section>
     </div>

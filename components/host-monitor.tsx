@@ -79,26 +79,6 @@ export function HostMonitor({ slug, initialSnapshot }: Props) {
         <span className="whitespace-nowrap">Next round</span>
       </button>
 
-      <section className="grid gap-4 rounded-[24px] border border-white/10 bg-white/6 p-3 sm:p-5">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
-            <Link
-              href={`/host/${slug}/settings`}
-              className="inline-flex flex-1 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10 sm:flex-none"
-            >
-              Configure
-            </Link>
-            <button
-              onClick={() => post(snapshot.event.status === "closed" ? "reopen-event" : "close-event")}
-              disabled={busy !== null}
-              className="inline-flex flex-1 items-center justify-center rounded-xl bg-gray-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60 sm:flex-none"
-            >
-              {snapshot.event.status === "closed" ? "Reopen event" : "Close event"}
-            </button>
-          </div>
-        </div>
-      </section>
-      
       <section className="grid gap-5 rounded-[24px] border border-white/10 bg-white/6 p-4 sm:p-5">
         <div className="grid gap-4">
           <div className="grid gap-4">
@@ -120,6 +100,7 @@ export function HostMonitor({ slug, initialSnapshot }: Props) {
                 teams={snapshot.event.teams}
                 judges={snapshot.event.judges}
                 judgeTeamTotals={snapshot.roundJudgeTotals[round.id] ?? {}}
+                showSumRow
               />
             ))}
           </div>
@@ -141,6 +122,26 @@ export function HostMonitor({ slug, initialSnapshot }: Props) {
                 ) : null}
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid gap-4 rounded-[24px] border border-white/10 bg-white/6 p-3 sm:p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
+            <Link
+              href={`/host/${slug}/settings`}
+              className="inline-flex flex-1 items-center justify-center rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10 sm:flex-none"
+            >
+              Configure
+            </Link>
+            <button
+              onClick={() => post(snapshot.event.status === "closed" ? "reopen-event" : "close-event")}
+              disabled={busy !== null}
+              className="inline-flex flex-1 items-center justify-center rounded-xl bg-gray-300 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-amber-200 disabled:opacity-60 sm:flex-none"
+            >
+              {snapshot.event.status === "closed" ? "Reopen event" : "Close event"}
+            </button>
           </div>
         </div>
       </section>
@@ -205,7 +206,7 @@ function ScoreTableCard({
             ))}
             {showSumRow ? (
               <tr className="border-t border-white/10 bg-white/5">
-                <td className="px-3 py-3 text-left font-semibold text-white sm:px-4">Sum</td>
+                <td className="px-3 py-3 text-left font-semibold text-white sm:px-4">Total</td>
                 {judgeSums.map((sum, index) => (
                   <td key={judges[index]?.id ?? index} className="px-2 py-3 text-center font-semibold text-white sm:px-3">
                     {sum}
@@ -236,6 +237,7 @@ function RecentTapRow({ score, snapshot }: { score: ScoreEvent; snapshot: EventS
           {round ? `Round ${round.number}` : "Round"} · {new Date(score.createdAt).toLocaleTimeString([], {
             hour: "2-digit",
             minute: "2-digit",
+            second: "2-digit",
           })}
         </div>
       </div>

@@ -287,6 +287,31 @@ export async function addScoreEvent(slug: string, score: Omit<ScoreEvent, "id" |
   return nextScore;
 }
 
+export async function resetScores(slug: string) {
+  await mutateState(async (state) => {
+    const event = state.events[slug];
+    if (!event) {
+      throw new Error("Event not found");
+    }
+    const now = nowIso();
+    const freshRound = {
+      id: randomId("round"),
+      number: 1,
+      status: "open" as const,
+      startedAt: now,
+    };
+
+    state.events[slug] = {
+      ...event,
+      status: "active",
+      currentRoundId: freshRound.id,
+      updatedAt: now,
+      rounds: [freshRound],
+    };
+    state.scores[slug] = [];
+  });
+}
+
 export async function getEventSnapshot(slug: string): Promise<EventSnapshot | null> {
   const bundle = await getEvent(slug);
   return bundle?.snapshot ?? null;
